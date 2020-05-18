@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <title></title>
+    <style>
+      #sudokuarea{
+        border-spacing : 0px;
+        border : 3px solid black;
+      }
+      td{
+        border : 0.5px solid black;
+        width : 50px;
+        height : 50px;
+
+      }
+
+    </style>
+    <script>
+
+var SUDOKU = function(){
+          httpRequest = new XMLHttpRequest();
+
+          if(!httpRequest) {
+            alert('map을 불러오지 못했습니다.');
+
+          }
+          httpRequest.onreadystatechange = reContents;
+          httpRequest.open('GET', 'https://sugoku.herokuapp.com/board?difficulty=easy');
+          httpRequest.send(null);
+
+
+        function reContents() {
+          if (httpRequest.readyState === XMLHttpRequest.DONE) {
+            if (httpRequest.status === 200) {
+              console.log(httpRequest.responseText);
+
+            } else {
+              alert('스도쿠 맵을 불러오지 못했습니다.');
+            }
+          }
+        }
+      };
+
+    </script>
+  </head>
+  <body>
+    <table id = "sudokuarea">
+
+    </table>
+  </body>
+  <script>
+    SUDOKU();
+    function createTR(id){
+      var tr = document.createElement("tr")
+      tr.id = id;
+      return tr;
+    }
+
+    function createTD(id){
+      var td = document.createElement("td")
+      td.id = id;
+      return td;
+    }
+
+    function getTRid(y){
+      return 'tr-' + y;
+    }
+
+    function getTDid(y,x){
+      return 'td-' + y + '-' + x;
+    }
+
+    function init(){
+      var sudokuarea = $("#sudokuarea");
+      for(var y=0; y<9;y++){
+        var tr = createTR(getTRid(y));
+        sudokuarea.append(tr);
+        for(var x=0; x<9;x++){
+          var td = createTD(getTDid(y,x));
+          tr.append(td);
+
+        }
+
+      }
+    }
+    $(document).ready(init);
+
+  </script>
+</html>
