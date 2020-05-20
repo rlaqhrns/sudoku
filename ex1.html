@@ -36,6 +36,11 @@ var SUDOKU = function(){
           if (httpRequest.readyState === XMLHttpRequest.DONE) {
             if (httpRequest.status === 200) {
               console.log(httpRequest.responseText);
+              var _SUDOKUEASY = httpRequest.responseText;
+              var SUDOKUEASY = JSON.parse(_SUDOKUEASY);
+              for(var i = 0 ; i<9 ; i++){
+                console.log(SUDOKUEASY.board[i]);
+              }
 
             } else {
               alert('스도쿠 맵을 불러오지 못했습니다.');
@@ -52,7 +57,9 @@ var SUDOKU = function(){
     </table>
   </body>
   <script>
+
     SUDOKU();
+
     function createTR(id){
       var tr = document.createElement("tr")
       tr.id = id;
@@ -66,11 +73,11 @@ var SUDOKU = function(){
     }
 
     function getTRid(y){
-      return 'tr-' + y;
+      return 'tr_' + y;
     }
 
     function getTDid(y,x){
-      return 'td-' + y + '-' + x;
+      return 'td_' + y + ',' + x;
     }
 
     function init(){
@@ -81,6 +88,14 @@ var SUDOKU = function(){
         for(var x=0; x<9;x++){
           var td = createTD(getTDid(y,x));
           tr.append(td);
+          console.log(td);
+          // document.getElementById("td_"+y+","+x).innerHTML(y+","+x);
+         $("td_"+y+","+x).html(y+","+x);
+
+
+
+
+
 
         }
 
