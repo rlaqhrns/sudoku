@@ -56,6 +56,7 @@ var SUDOKU = function(){
     </script>
   </head>
   <body>
+
     <table id = "sudokuarea">
 
     </table>
@@ -83,6 +84,11 @@ var SUDOKU = function(){
     function getTDid(y,x){
       return 'td_' + y + ',' + x;
     }
+    function clickevent(id){
+    //  var ANS = Number(prompt("정답을 입력해주세요."));
+    console.log(id);
+
+    }
 
     function init(){
       var sudokuarea = $("#sudokuarea");
@@ -92,10 +98,12 @@ var SUDOKU = function(){
         for(var x=0; x<9;x++){
           var td = createTD(getTDid(y,x));
           tr.append(td);
-          if(SUDOKUEASY.board[y][x]!== 0)
-          document.getElementById(getTDid(y,x)).innerHTML= SUDOKUEASY.board[y][x];
+          if(SUDOKUEASY.board[y][x]!== 0){
+          document.getElementById(getTDid(y,x)).innerHTML= "<strong>"+SUDOKUEASY.board[y][x]+"</strong>";
           // td.innerHTML = y+","+x;
-
+        }else{
+          document.getElementById(getTDid(y,x)).innerHTML = "<input type = 'button' onclick = 'clickevent(this.id)'>"
+        }
 
 
 
