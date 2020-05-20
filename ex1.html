@@ -84,15 +84,15 @@ var SUDOKU = function(){
     function getTDid(y,x){
       return 'td_' + y + ',' + x;
     }
-    function clickevent(id){
-    //  var ANS = Number(prompt("정답을 입력해주세요."));
-    console.log(id);
+    function clickevent(y,x){
+    ANS = Number(prompt("정답을 입력해주세요."));
+    console.log(y,x);
 
     }
 
     function init(){
       var sudokuarea = $("#sudokuarea");
-      for(var y=0; y<9;y++){
+      for(var y=0 ; y<9 ; y++){
         var tr = createTR(getTRid(y));
         sudokuarea.append(tr);
         for(var x=0; x<9;x++){
@@ -102,7 +102,8 @@ var SUDOKU = function(){
           document.getElementById(getTDid(y,x)).innerHTML= "<strong>"+SUDOKUEASY.board[y][x]+"</strong>";
           // td.innerHTML = y+","+x;
         }else{
-          document.getElementById(getTDid(y,x)).innerHTML = "<input type = 'button' onclick = 'clickevent(this.id)'>"
+
+          document.getElementById(getTDid(y,x)).innerHTML = "<input type = 'button' onclick = 'clickevent("+y+","+x+")'>"
         }
 
 
