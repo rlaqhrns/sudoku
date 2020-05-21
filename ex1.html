@@ -85,6 +85,7 @@ var SUDOKU = function(){
       return 'td_' + y + ',' + x;
     }
     function clickevent(y,x){
+      console.log("click"+y+","+x);
     ANS = Number(prompt("정답을 입력해주세요."));
     return ANS;
 
@@ -111,8 +112,8 @@ var SUDOKU = function(){
           document.getElementById(getTDid(y,x)).innerHTML= "<strong>"+SUDOKUEASY.board[y][x]+"</strong>";
           // td.innerHTML = y+","+x;
         }else{
-
-          document.getElementById(getTDid(y,x)).addEventListener("click",alert("click"))
+          var target = document.getElementById(getTDid(y,x));
+          target.addEventListener("click",()=>{target.innerHTML=clickevent(y,x)})
         }
 
 
