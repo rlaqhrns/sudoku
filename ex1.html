@@ -38,11 +38,11 @@ var SUDOKU = function(){
           if (httpRequest.readyState === XMLHttpRequest.DONE) {
             if (httpRequest.status === 200) {
 
-              console.log(httpRequest.responseText);
+        //      console.log(httpRequest.responseText);
               _SUDOKUEASY = httpRequest.responseText;
               SUDOKUEASY = JSON.parse(_SUDOKUEASY);
               for(var i = 0 ; i < 9 ; i++){
-                console.log(SUDOKUEASY.board[i]);
+        //        console.log(SUDOKUEASY.board[i]);
               }
 
             } else {
@@ -62,6 +62,7 @@ var SUDOKU = function(){
     </table>
   </body>
   <script>
+  var blank = [];
 
     SUDOKU();
 
@@ -84,11 +85,18 @@ var SUDOKU = function(){
     function getTDid(y,x){
       return 'td_' + y + ',' + x;
     }
-    function clickevent(y,x){
-      console.log("click"+y+","+x);
-    ANS = Number(prompt("정답을 입력해주세요."));
-    return ANS;
+    function clickevent(){
+      for(var i=0; i<blank.length; i++){
+            $("#td_"+ blank[i]).on("click",WriteAns())
 
+      }
+
+
+    }
+    function WriteAns(){
+
+              ANS = Number(prompt("정답을 입력해주세요."));
+              return ANS;
     }
     function validation(){
       for(var y=0 ; y<9 ; y++){
@@ -100,29 +108,29 @@ var SUDOKU = function(){
 
     }
 
+
     function init(){
       var sudokuarea = $("#sudokuarea");
       for(var y=0 ; y<9 ; y++){
         var tr = createTR(getTRid(y));
         sudokuarea.append(tr);
+
         for(var x=0; x<9;x++){
           var td = createTD(getTDid(y,x));
           tr.append(td);
           if(SUDOKUEASY.board[y][x]!== 0){
-          document.getElementById(getTDid(y,x)).innerHTML= "<strong>"+SUDOKUEASY.board[y][x]+"</strong>";
-          // td.innerHTML = y+","+x;
-        }else{
-          var target = document.getElementById(getTDid(y,x));
-          target.addEventListener("click",()=>{target.innerHTML=clickevent(y,x)})
-        }
+            document.getElementById(getTDid(y,x)).innerHTML= "<strong>"+SUDOKUEASY.board[y][x]+"</strong>";
+            // td.innerHTML = y+","+x;
+          }else{
+            var target = document.getElementById(getTDid(y,x));
+            blank.push([y,x]);
 
-
-
-
+          }
 
         }
 
       }
+      clickevent();
     }
     $(document).ready(SUDOKU());
 
