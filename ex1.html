@@ -112,7 +112,7 @@ var SUDOKU = function(){
           // td.innerHTML = y+","+x;
         }else{
 
-          document.getElementById(getTDid(y,x)).innerHTML = clickevent(y,x);
+          document.getElementById(getTDid(y,x)).addEventListener("click",alert("click"))
         }
 
 
