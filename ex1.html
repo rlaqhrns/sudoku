@@ -62,8 +62,8 @@ var SUDOKU = function(){
     </table>
   </body>
   <script>
-  var blank = [];
-
+  var BLANK = [];
+  var CHECK = [];
     SUDOKU();
 
     function createTR(id){
@@ -86,11 +86,11 @@ var SUDOKU = function(){
       return 'td_' + y + '-' + x;
     }
     function clickevent(){
-      for(var i=0; i<blank.length; i++){
-        var $blank = $("#td_"+ blank[i]);
-          $blank.click(WriteAns);
+      for(var i=0; i<BLANK.length; i++){
+        var $BLANK = $("#td_"+ BLANK[i]);
+          $BLANK.click(WriteAns);
 
-          console.log("#td_"+ blank[i]);
+          console.log("#td_"+ BLANK[i]);
       }
 
 
@@ -99,10 +99,23 @@ var SUDOKU = function(){
 
       ANS = Number(prompt("정답을 입력해주세요."));
       if(0 < ANS && ANS < 9){
-        $(this).html(ANS)
+        $(this).html(ANS);
+      }else if(ANS === 0){
+        $(this).html(null);
       }else{
-        alert("1~9값 입력해주세요.")
+        alert("공백 : 지우개, 1~9값 입력해주세요.");
       }
+    }
+    function UPDATEarray(){
+      CHECK = [];
+
+      for(var y = 0;y<9;y++){
+        for(var x = 0;x<9;x++){
+          CHECK.push($("#"+getTDid(y,x)).text());
+        }
+      }
+
+
     }
     function validation(){
       for(var y=0 ; y<9 ; y++){
@@ -129,7 +142,7 @@ var SUDOKU = function(){
             // td.innerHTML = y+","+x;
           }else{
             var target = document.getElementById(getTDid(y,x));
-            blank.push([y+"-"+x]);
+            BLANK.push([y+"-"+x]);
             console.log(getTDid(y,x));
 
           }
