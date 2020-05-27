@@ -87,7 +87,7 @@ var SUDOKU = function(){
     }
     function clickevent(){
       for(var i=0; i<blank.length; i++){
-            $("#td_"+ blank[i]).on("click",WriteAns())
+            $("#td_"+ blank[i]).click(WriteAns);
 
       }
 
