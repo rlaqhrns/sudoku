@@ -89,7 +89,7 @@ var SUDOKU = function(){
       for(var i=0; i<blank.length; i++){
         var $blank = $("#td_"+ blank[i]);
           $blank.click(WriteAns);
-        
+
           console.log("#td_"+ blank[i]);
       }
 
@@ -98,7 +98,11 @@ var SUDOKU = function(){
     function WriteAns(){
 
       ANS = Number(prompt("정답을 입력해주세요."));
-      return ANS;
+      if(0 < ANS && ANS < 9){
+        $(this).html(ANS)
+      }else{
+        alert("1~9값 입력해주세요.")
+      }
     }
     function validation(){
       for(var y=0 ; y<9 ; y++){
