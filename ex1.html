@@ -83,24 +83,26 @@ var SUDOKU = function(){
     }
 
     function getTDid(y,x){
-      return 'td_' + y + ',' + x;
+      return 'td_' + y + '-' + x;
     }
     function clickevent(){
       for(var i=0; i<blank.length; i++){
-            $("#td_"+ blank[i]).click(WriteAns);
-
+        var $blank = $("#td_"+ blank[i]);
+          $blank.click(WriteAns);
+        
+          console.log("#td_"+ blank[i]);
       }
 
 
     }
     function WriteAns(){
 
-              ANS = Number(prompt("정답을 입력해주세요."));
-              return ANS;
+      ANS = Number(prompt("정답을 입력해주세요."));
+      return ANS;
     }
     function validation(){
       for(var y=0 ; y<9 ; y++){
-        for(var x=0 ; x<0 ; x++){
+        for(var x=0 ; x<9 ; x++){
 
         }
 
@@ -123,7 +125,8 @@ var SUDOKU = function(){
             // td.innerHTML = y+","+x;
           }else{
             var target = document.getElementById(getTDid(y,x));
-            blank.push([y,x]);
+            blank.push([y+"-"+x]);
+            console.log(getTDid(y,x));
 
           }
 
