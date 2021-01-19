@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <title></title>
+    <style>
+      table {
+        border-spacing: 0px;
+        border: 0.1px solid #444444;
+      }
+
+      td{
+        border : 0.5px solid black;
+        width : 50px;
+        height : 50px;
+        text-align: center;
+        background-color: white;
+      }
+      .block {
+        opacity: .5;
+        z-index: 4999;
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 1040;
+        background-color: #000;
+        opacity: .5;
+      }
+
+      .hinttd{
+        width : 15px;
+        height : 15px;
+        text-align: center;
+        font-size: 5px;
+        margin: 0;
+        padding: 0;
+      }
+
+      .keypad {
+        position: fixed;
+        z-index: 5000;
+        opacity: 1;
+        background-color:white;
+      }
+
+    </style>
+  </head>
+  <body>
+    <table id="table">
+      <tbody id="tbody">
+      </tbody>
+    </table>
+    <div id="blocker" class="block" style="visibility: hidden;"></div>
+    <table id="keypad" class="keypad" style="visibility: hidden" >
+      <tbody id="keypadbody">
+        <tr><td>1</td><td>2</td><td>3</td></tr>
+        <tr><td>4</td><td>5</td><td>6</td></tr>
+        <tr><td>7</td><td>8</td><td>9</td></tr>
+        <tr><td colspan="3">DEL</td></tr>
+      </tbody>
+    </table>
+
+  </body>
+  <script>
+    var SUDOKU;
+    var X_HNIT;
+    var Y_HINT;
+    var CELL_HINT;
+
+    var CELL_TYPE = {
+      "INPUT": "INPUT",
+      "CONST": "CONST"
+    };
+
+    var CELL_STATUS = {
+      "VALID": "VALID",
+      "INVALID": "INVAID",
+      "NOT_INPUT": "NOT_INPUT"
+    };
+
+    var HINT_STATUS = {
+      "VALID": "VALID",
+      "INVALID": "INVAID",
+      "NOT_INPUT": "NOT_INPUT"
+    };
+
+
+    var KEYPAD_CALLBACK = null;
+    function selectNumber(y,x, callback) {
+      var position = getElement(y,x).position()
+      $('#blocker').css('visibility', 'visible');
+      $('#keypad').css('visibility', 'visible');
+      $('#keypad').css('left', position.left);
+      $('#keypad').css('top', position.top);
+
+      var tds = $('#keypadbody').children().children()
+      // x[0].style.backgroundColor
+      var idx = Math.floor(y/3) * 3 +  Math.floor(x/3)
+      var hint = CELL_HINT[idx];
+      // for(var i=0; i<9; i++){
+      //   var status = hint.status[i];
+      //   if(status == HINT_STATUS.NOT_INPUT){
+      //     tds[i].style.backgroundColor = '#FFFFFF'
+      //     // $('#'+idGetter(i+1)).css('backgroundColor', '#FFFFFF');
+      //   }
+      //   else if(status == HINT_STATUS.VALID){
+      //     tds[i].style.backgroundColor = '#ABF200'
+      //     // $('#'+idGetter(i+1)).css('backgroundColor', '#ABF200');
+      //   }
+      //   else if(status == HINT_STATUS.INVALID){
+      //     tds[i].style.backgroundColor = '#ED4C00'
+      //     // $('#'+idGetter(i+1)).css('backgroundColor', '#ED4C00');
+      //   }
+      // }
+
+
+      KEYPAD_CALLBACK = function(value) {
+        $('#blocker').css('visibility', 'hidden');
+        $('#keypad').css('visibility', 'hidden');
+        callback(value);
+        KEYPAD_CALLBACK = null;
+      };
+    }
+
+    function initKeypad(){
+      $('#keypadbody').children().children().click(function(e){
+        if(isNaN(this.innerHTML)){
+          KEYPAD_CALLBACK(null);
+        }
+        KEYPAD_CALLBACK(Number(this.innerHTML));
+      })
+
+      $('#blocker').click(function(e){
+        $('#blocker').css('visibility', 'hidden');
+        $('#keypad').css('visibility', 'hidden');
+        KEYPAD_CALLBACK = null;
+      })
+    }
+
+    class Cell{
+      constructor(y, x, value) {
+          this.y=y;
+          this.x=x;
+          this.status = CELL_STATUS.VALID
+
+          if(value === 0){
+            this.type = CELL_TYPE.INPUT;
+            this.value = null;
+          }
+          else{
+            this.value = value;
+            this.type = CELL_TYPE.CONST;
+          }
+      }
+
+      set(value){
+        this.value = value;
+      }
+
+      validate(){
+        if(this.value == null){
+          this.status = CELL_STATUS.NOT_INPUT;
+          return;
+        }
+        for(var i=0; i<9; i++){
+          if(this.y != i && SUDOKU[i][this.x].value == this.value){
+            this.status = CELL_STATUS.INVALID;
+            return;
+          }
+
+          if(this.x != i && SUDOKU[this.y][i].value == this.value){
+            this.status = CELL_STATUS.INVALID;
+            return;
+          }
+        }
+        this.status = CELL_STATUS.VALID;
+      }
+    }
+
+    class YHint {
+      constructor(y) {
+        this.y=y;
+        this.status = []
+        for(var i=0; i<9; i++){
+          this.status.push(HINT_STATUS.NOT_INPUT);
+        }
+      }
+
+      update(){
+        for(var i=0; i<9; i++){
+          var num = i+1;
+          var cnt = 0;
+          for(var j=0; j<9; j++){
+            var cell = SUDOKU[this.y][j];
+            if(cell.value == num){
+              cnt ++;
+            }
+          }
+
+          if(cnt == 0){
+            this.status[i] = HINT_STATUS.NOT_INPUT;
+          }
+          else if (cnt ==1){
+            this.status[i] = HINT_STATUS.VALID;
+          }
+          else{
+            this.status[i] = HINT_STATUS.INVALID
+          }
+        }
+      }
+    }
+
+    class XHint {
+      constructor(x) {
+        this.x=x;
+        this.status = []
+        for(var i=0; i<9; i++){
+          this.status.push(HINT_STATUS.NOT_INPUT);
+        }
+      }
+
+      update(){
+        for(var i=0; i<9; i++){
+          var num = i+1;
+          var cnt = 0;
+          for(var j=0; j<9; j++){
+            var cell = SUDOKU[j][this.x];
+            if(cell.value == num){
+              cnt ++;
+            }
+          }
+          if(cnt == 0){
+            this.status[i] = HINT_STATUS.NOT_INPUT;
+          }
+          else if (cnt ==1){
+            this.status[i] = HINT_STATUS.VALID;
+          }
+          else{
+            this.status[i] = HINT_STATUS.INVALID
+          }
+        }
+      }
+    }
+
+    class CellHint {
+      constructor(startY, startX) {
+        this.startY=startY;
+        this.startX=startX;
+        this.status = []
+        for(var i=0; i<9; i++){
+          this.status.push(HINT_STATUS.NOT_INPUT);
+        }
+      }
+
+      update(){
+        for(var i=0; i<9; i++){
+          var num = i+1;
+          var cnt = 0;
+          for(var j=0; j<3; j++){
+            for(var k=0; k<3; k++){
+              var cell = SUDOKU[this.startY + j][this.startX + k];
+              if(cell.value == num){
+                cnt ++;
+              }
+            }
+          }
+          if(cnt == 0){
+            this.status[i] = HINT_STATUS.NOT_INPUT;
+          }
+          else if (cnt ==1){
+            this.status[i] = HINT_STATUS.VALID;
+          }
+          else{
+            this.status[i] = HINT_STATUS.INVALID
+          }
+        }
+      }
+
+
+    }
+
+
+    function createTR(id){
+      var tr  = document.createElement('tr');
+      tr.id = id
+      return tr;
+    }
+
+    function createCellTD(y,x){
+      var td = createTD(getTDid(y,x))
+      if(y % 3 == 0){
+        td.style.borderTop = '3px solid black'
+      }
+      if(y % 3 == 2){
+        td.style.borderBottom = '3px solid black'
+      }
+
+      if(x % 3 == 0){
+        td.style.borderLeft = '3px solid black'
+      }
+      if(x % 3 == 2){
+        td.style.borderRight = '3px solid black'
+      }
+
+      return td;
+    }
+
+    function createTD(id){
+      var td  = document.createElement('td');
+      td.id = id;
+      return td;
+    }
+
+    function getTRid(y){
+      return 'tr-' + y;
+    }
+
+    function getTDid(y,x){
+      return 'td-' + y + '-' + x;
+    }
+
+    function getElement(y, x){
+      return $('#' + getTDid(y,x));
+    }
+
+    function getPositionFromTd(tdId){
+      var yx =  tdId.split("td-")[1].split("-")
+      return [Number(yx[0]), Number(yx[1])];
+    }
+
+    function getYHintId(y, num){
+      return 'hint-y-' + y + '-num-' + num;
+    }
+
+    function getXHintId(x, num){
+      return 'hint-x-' + x + '-num-' + num;
+    }
+
+    function getHintTdId(y,x,targetNum){
+      var prefix;
+      if(y==-1){
+        return getXHintId(x,targetNum);
+      }
+      if(x == -1){
+        return getYHintId(y,targetNum);
+      }
+    }
+
+
+    function createHint(y,x){
+      if(y ==-1 && x==-1){
+        return;
+      }
+      var table = document.createElement('table');
+      var tbody = document.createElement('tbody');
+      table.append(tbody);
+      for(i=0; i<3; i++){
+        var tr = document.createElement('tr')
+        tbody.append(tr);
+        for(j=0; j<3; j++){
+          var num = i*3 + j + 1;
+          var td = createTD(getHintTdId(y,x,num));
+          td.classList.add('hinttd');
+          td.innerHTML = num;
+          tr.append(td);
+        }
+      }
+
+      return table;
+
+    }
+
+    function init(){
+      initKeypad();
+      initTable();
+      initGame();
+    }
+
+    function initTable(){
+      var table = $('#tbody').append(tr)
+
+      for(var y=-1; y<9 ; y++){
+        var tr = createTR(getTRid(y));
+        table.append(tr);
+
+        for(var x=-1; x<9; x++){
+          var td = createCellTD(y,x);
+          tr.append(td)
+
+          if((y != -1 || x!= -1 ) && (y == -1 || x== -1)){
+            var hint = createHint(y,x);
+            td.append(hint);
+          }
+        }
+      }
+    }
+
+    function drawCell(cell){
+      if(cell.type == CELL_TYPE.INPUT){
+        if(cell.status == CELL_STATUS.INVALID){
+          getElement(cell.y,cell.x).css('backgroundColor', '#ED4C00');
+        }
+        else if(cell.status == CELL_STATUS.VALID) {
+          getElement(cell.y,cell.x).css('backgroundColor', '#ABF200');
+        }
+        else{
+          getElement(cell.y,cell.x).css('backgroundColor', '#FFFFFF');
+        }
+      }
+      else{
+        if(cell.status == CELL_STATUS.INVALID){
+          getElement(cell.y,cell.x).css('backgroundColor', '#FAE0D4');
+        }
+        else{
+          getElement(cell.y,cell.x).css('backgroundColor', '#FFFFFF');
+        }
+      }
+    }
+
+    function drawHint(hint, idGetter) {
+      for(var i=0; i<9; i++){
+        var status = hint.status[i];
+        if(status == HINT_STATUS.NOT_INPUT){
+          $('#'+idGetter(i+1)).css('backgroundColor', '#FFFFFF');
+        }
+        else if(status == HINT_STATUS.VALID){
+          $('#'+idGetter(i+1)).css('backgroundColor', '#ABF200');
+        }
+        else if(status == HINT_STATUS.INVALID){
+          $('#'+idGetter(i+1)).css('backgroundColor', '#ED4C00');
+        }
+      }
+    }
+
+    function update(y, x){
+      for(var i=0; i<9; i++){
+        SUDOKU[i][x].validate();
+        SUDOKU[y][i].validate();
+      }
+
+      for(var i=0; i<9; i++){
+        drawCell(SUDOKU[i][x])
+        drawCell(SUDOKU[y][i])
+      }
+
+      for(var i=0; i<9; i++){
+        Y_HINT[i].update();
+        X_HNIT[i].update();
+        CELL_HINT[i].update();
+      }
+      drawHint(Y_HINT[y], function (num){
+        return getYHintId(y, num);
+      });
+      drawHint(X_HNIT[x], function (num){
+        return getXHintId(x, num);
+      });
+    }
+
+    function checkEnd(){
+      for(var y=0; y<9; y++){
+        for (var x=0; x<9; x++){
+          if(SUDOKU[y][x].status != CELL_STATUS.VALID) {
+            return;
+          }
+        }
+      }
+
+      window.alert("clear");
+      initGame()
+
+    }
+
+
+    function start(){
+      for(var y=0 ; y <9 ; y++){
+        for(var x=0; x<9 ; x++){
+          if(SUDOKU[y][x].type == CELL_TYPE.INPUT){
+            (function (y,x){
+              getElement(y,x).click(function(e){
+                selectNumber(y,x, function(val){
+                  SUDOKU[y][x].set(val);
+                  getElement(y,x).html(SUDOKU[y][x].value)
+                  update(y,x)
+                  checkEnd();
+                })
+              })
+            })(y,x)
+          }
+          else{
+            getElement(y,x).html(SUDOKU[y][x].value)
+          }
+        }
+      }
+
+
+      for(var i=0; i<9; i++){
+        Y_HINT[i].update();
+        X_HNIT[i].update();
+        drawHint(Y_HINT[i], function (num){
+          return getYHintId(i, num);
+        });
+        drawHint(X_HNIT[i], function (num){
+          return getXHintId(i, num);
+        });
+      }
+    }
+
+
+    function initGame(){
+      X_HNIT = []
+      Y_HINT = []
+      CELL_HINT = []
+      SUDOKU = []
+
+      for(var i=0; i<9; i++){
+        Y_HINT.push(new YHint(i));
+        X_HNIT.push(new XHint(i));
+        CELL_HINT.push(new CellHint(Math.floor((i*3)/9)*3, (i*3)%9))
+      }
+
+
+      httpRequest = new XMLHttpRequest();
+      httpRequest.onreadystatechange = function() {
+        if (httpRequest.readyState === XMLHttpRequest.DONE) {
+          if (httpRequest.status === 200) {
+            response = JSON.parse(httpRequest.responseText);
+            for(var y = 0 ; y < 9 ; y++){
+              SUDOKU.push([]);
+              for(var x=0; x<9 ; x++){
+                SUDOKU[y].push(new Cell(y,x,response['board'][y][x]))
+              }
+            }
+            start();
+          } else {
+            alert('error.');
+          }
+        }
+      };
+      httpRequest.open('GET', 'https://sugoku.herokuapp.com/board?difficulty=easy');
+      httpRequest.send(null);
+
+    };
+
+
+
+    $(document).ready(init)
+  </script>
+</html>
